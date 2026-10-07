@@ -1,88 +1,104 @@
 package com.example.hubert02;
 
 import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
-
-import com.google.android.material.snackbar.Snackbar;
+import android.view.View;
+import android.widget.*;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.view.View;
-
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-
-import com.example.hubert02.databinding.ActivityMainBinding;
-
-import android.view.Menu;
-import android.view.MenuItem;
+import com.example.hubert02.R;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AppBarConfiguration appBarConfiguration;
-    private ActivityMainBinding binding;
+    EditText Wzrost , waga;
+    RadioGroup grupa;
+    CheckBox Zapisz;
+    Button przycisk;
+    TextView Wynik;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        super.onCreate(savedInstanceState);;
+        setContentView(R.layout.activity_main);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        Wzrost = findViewById(R.id.etWzrost);
+        waga=findViewById(R.id.etwaga);
+        grupa = findViewById(R.id.grupa);;
+        Zapisz = findViewById(R.id.cbZapisz);
+        przycisk = findViewById(R.id.btnOblicz);
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.main, (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-        setSupportActionBar(binding.toolbar);
+        Wynik = findViewById(R.id.tvWynik);
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
+        przycisk.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAnchorView(R.id.fab)
-                        .setAction("Action", null).show();
+            public void onClick(View v) {
+
+                String w = Wzrost.getText().toString().trim().replace(',', '.');
+                String Kg = waga.getText().toString().trim().replace(',', '.');;
+
+                if (w.isEmpty() || Kg.isEmpty()) {
+                    if (w.isEmpty()) {
+                        Wzrost.setError("Pole nie moze byc puste!");
+                    }
+                    if (Kg.isEmpty())  {
+                        waga.setError("Pole nie moze byc puste!");
+                    }
+                    return;
+                }
+
+                if (grupa.getCheckedRadioButtonId() == -1) {
+                    Toast.makeText(MainActivity.this, "Wybierz plec", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double h;
+                double Masa;
+                try {
+                    h = Double.parseDouble(w);
+                    Masa = Double.parseDouble(Kg);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(MainActivity.this, "Zle dane", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (h <= 0 || Masa <= 0) {
+                    Toast.makeText(MainActivity.this, "Liczby musza byc wieksze od 0", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                double hm = h / 100;;
+                double BMI = Masa / (hm * hm);
+
+                String opis;
+                if (BMI < 18.5) {
+                    opis = "Niedowaga";
+                } else if (BMI < 25) {
+                    opis = "Waga prawidlowa";
+                } else if (BMI < 30) {
+                    opis = "Nadwaga";
+                } else {
+                    opis = "Otylosc";
+                }
+
+                String plec = "";
+                if (grupa.getCheckedRadioButtonId() == R.id.rbK) {
+                    plec = "Kobieta";
+                } else {
+                    plec = "Mezczyzna";
+                }
+
+                String tekst = plec + "\nBMI: " + String.format("%.2f", BMI) + "\n" + opis;;
+
+                if (Zapisz.isChecked()) {
+                    tekst = tekst + "\n(dane zapisane)";
+                }
+
+                Wynik.setText(tekst);
+
             }
         });
-    }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, appBarConfiguration)
-                || super.onSupportNavigateUp();
     }
 }
